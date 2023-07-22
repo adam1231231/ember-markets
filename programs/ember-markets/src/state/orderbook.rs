@@ -2,15 +2,22 @@ use anchor_lang::prelude::*;
 
 use crate::ember_errors::EmberErr;
 use crate::consts::ORDER_BOOK_SIZE;
-use crate::state::side::StoredSide;
-use crate::state::Sides;
+use crate::state::side::{StoredSide, Sides};
+
+
+#[account(zero_copy)]
+pub struct OrderBookState {
+    pub buy_side: OrderBook,
+    pub sell_side: OrderBook,
+    pub market_key: Pubkey,
+}
 
 
 #[zero_copy]
 pub struct OrderBook {
     pub side: StoredSide,
-    pub best_order_idx: u8,
-    pub worst_order_idx: u8,
+    pub best_order_idx: u64,
+    pub worst_order_idx: u64,
     pub orders: [Order; ORDER_BOOK_SIZE],
 }
 
@@ -19,8 +26,8 @@ pub struct Order {
     pub price: u64,
     pub amount: u64,
     pub uid: u64,
-    pub prev: u8,
-    pub next: u8,
+    pub prev: u64,
+    pub next: u64,
 }
 
 impl Default for Order {
@@ -43,7 +50,7 @@ impl OrderBook {
         order.price = price;
 
 
-        let mut prev_index: Option<u8> = Some(0);
+        let mut prev_index: Option<u64> = Some(0);
         for i in 0..self.orders.len() {
             if self.is_price_better(price, self.orders[i].price) {
                 let order_idx = self.get_empty_node().unwrap_or_else(|| {
@@ -54,11 +61,11 @@ impl OrderBook {
 
                 order.prev = prev_index.unwrap_or(0);
 
-                order.next = i as u8;
+                order.next = i as u64;
 
                 self.place_order(order.clone(), order_idx);
             }
-            prev_index = Some(i as u8);
+            prev_index = Some(i as u64);
         }
         // if order's price is the worst, insert it if there's an empty node
         let order_idx = self.get_empty_node().ok_or(EmberErr::OrderBookFull)?;
@@ -76,16 +83,16 @@ impl OrderBook {
         }
     }
 
-    fn get_empty_node(&self) -> Option<u8> {
+    fn get_empty_node(&self) -> Option<u64> {
         for i in 0..self.orders.len() {
             if self.orders[i].uid == 0 {
-                return Some(i as u8);
+                return Some(i as u64);
             }
         }
         None
     }
 
-    fn place_order(&mut self, order: Order, i: u8) {
+    fn place_order(&mut self, order: Order, i: u64) {
         assert_eq!(self.orders[i as usize].uid, 0);
 
         if order.prev == 0 {
@@ -102,18 +109,19 @@ impl OrderBook {
         self.orders[i as usize] = order;
     }
 
-    fn remove_order(&mut self, i: u8) {
-        let order = self.orders[i as usize].borrow_mut();
+    fn remove_order(&mut self, i: u64) {
+        let order : Order = self.orders[i as usize].clone();
         if order.prev == 0 {
             self.best_order_idx = order.next;
         } else {
-            self.orders[order.prev as usize].next = order.next;
+            let to_remove_order = self.orders.get_mut(order.prev as usize).unwrap();
+            to_remove_order.next = order.next;
         }
 
         if order.next == 0 {
             self.worst_order_idx = order.prev;
         } else {
-            self.orders[order.next as usize].prev = order.prev_idx;
+            self.orders[order.next as usize].prev = order.prev;
         }
         self.orders[i as usize] = Order::default();
     }
@@ -123,7 +131,7 @@ impl OrderBook {
         let mut total_cost = 0;
         let mut i = self.best_order_idx;
         while filled_amount < amount && i != 0 {
-            let order = self.orders[i as usize].borrow_mut();
+            let order = self.orders.get_mut(i as usize).unwrap();
             let amount_to_fill = std::cmp::min(order.amount, amount - filled_amount);
             order.amount -= amount_to_fill;
             total_cost += amount_to_fill * order.price;

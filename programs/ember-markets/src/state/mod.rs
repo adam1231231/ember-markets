@@ -1,18 +1,10 @@
-pub mod side;
-pub mod orderbook;
+use anchor_lang::prelude::*;
+use crate::consts::USERS_BALANCES;
 
-use anchor_lang::prelude::{Pubkey, account, zero_copy};
 use crate::state::orderbook::OrderBook;
 
+pub mod side;
+pub mod orderbook;
+pub mod state;
+pub mod BOT;
 
-#[account(zero_copy)]
-pub struct Market {
-    pub buy_side: OrderBook,
-    pub sell_side: OrderBook,
-    pub condition_key: Pubkey,
-}
-
-pub enum Sides {
-    Buy,
-    Sell,
-}
