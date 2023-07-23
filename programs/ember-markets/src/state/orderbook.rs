@@ -6,9 +6,9 @@ use crate::state::side::{Sides, StoredSide};
 
 #[account(zero_copy)]
 pub struct OrderBookState {
-    pub buy_side: OrderBook,
-    pub sell_side: OrderBook,
-    pub market_key: Pubkey,
+    pub bids: OrderBook,
+    pub asks: OrderBook,
+    pub base_mint: Pubkey,
 }
 
 #[zero_copy]
@@ -74,8 +74,8 @@ impl OrderBook {
 
     fn is_price_better(&self, lhs: u64, rhs: u64) -> bool {
         match self.side.into() {
-            Sides::Buy => lhs > rhs,
-            Sides::Sell => lhs < rhs,
+            Sides::Bid => lhs > rhs,
+            Sides::Ask => lhs < rhs,
         }
     }
 

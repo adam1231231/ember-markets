@@ -122,6 +122,7 @@ pub struct ClaimBalance<'info> {
     pub market: Box<Account<'info, Market>>,
     #[account(mut, seeds = [signer.key().as_ref(), market.key().as_ref()], bump)]
     pub user_market_pda: Account<'info, MarketSpecificUser>,
+    #[account(mut, constraint = balances.key() == market.balances)]
     pub balances: AccountLoader<'info, UsersBalances>,
     #[account(mut, seeds = [MARKET_AUTH_SEED, market.key().as_ref()], bump)]
     pub market_auth_pda: Account<'info, Auth>,

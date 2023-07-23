@@ -43,14 +43,16 @@ pub fn initialize_market(
     ctx.accounts.market.creator = *ctx.accounts.signer.key;
     ctx.accounts.market.orderbook_state_1 = ctx.accounts.orderbook_state_1.key();
     ctx.accounts.market.orderbook_state_2 = ctx.accounts.orderbook_state_2.key();
+
     ctx.accounts.market.rewards_multiplier = rewards_multiplier;
-    ctx.accounts.market.balances_address = ctx.accounts.balances.key();
+    ctx.accounts.market.balances = ctx.accounts.balances.key();
     ctx.accounts.market.resolved = false;
     ctx.accounts.market.condition_key = ctx.accounts.condition.key();
     ctx.accounts.market.quote_key = ctx.accounts.condition.collateral_token.key();
     ctx.accounts.market.outcome_1_key = ctx.accounts.condition.outcomes[0].token_mint;
     ctx.accounts.market.outcome_2_key = ctx.accounts.condition.outcomes[1].token_mint;
-    ctx.accounts.market.base_vault = ctx.accounts.base_vault.key();
+    ctx.accounts.market.base_vault_1 = ctx.accounts.base_vault_1.key();
+    ctx.accounts.market.base_vault_2 = ctx.accounts.base_vault_2.key();
     ctx.accounts.market.quote_vault = ctx.accounts.quote_vault.key();
 
     Ok(())

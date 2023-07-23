@@ -3,8 +3,8 @@ use anchor_lang::prelude::*;
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 #[repr(u8)]
 pub enum Side {
-    Buy = 0,
-    Sell = 1,
+    Bid = 0,
+    Ask = 1,
 }
 
 // An enum in a form that is zero-copyable
@@ -22,8 +22,8 @@ impl From<Side> for StoredSide {
 impl From<StoredSide> for Side {
     fn from(stored_side: StoredSide) -> Self {
         match stored_side.inner {
-            0 => Side::Buy,
-            1 => Side::Sell,
+            0 => Side::Bid,
+            1 => Side::Ask,
             _ => unreachable!(),
         }
     }
@@ -32,14 +32,14 @@ impl From<StoredSide> for Side {
 impl From<StoredSide> for Sides {
     fn from(stored_side: StoredSide) -> Self {
         match stored_side.inner {
-            0 => Sides::Buy,
-            1 => Sides::Sell,
+            0 => Sides::Bid,
+            1 => Sides::Ask,
             _ => unreachable!(),
         }
     }
 }
 
 pub enum Sides {
-    Buy,
-    Sell,
+    Bid,
+    Ask,
 }

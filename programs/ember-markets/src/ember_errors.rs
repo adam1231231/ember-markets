@@ -12,4 +12,10 @@ pub enum EmberErr {
     InvalidAdmin,
     #[msg("Question should be 200 letters or less")]
     QuestionTooLong,
+    #[msg("Price Crosses the spread")]
+    PriceCrossesTheSpread,
+    #[msg("Not enough funds")]
+    NotEnoughFunds,
+    #[msg("Orderbook doesn't match with the market")]
+    InvalidMarket,
 }
