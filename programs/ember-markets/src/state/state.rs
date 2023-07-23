@@ -53,30 +53,39 @@ impl UsersBalances {
         &mut self,
         uid: u64,
         amount: u64,
-        side: Side,
-        token: Option<u8>,
+        token: u8,
     ) -> Result<()> {
-        let token = token.unwrap_or(0);
-        match side {
-            Side::Bid => {
-                self.users[uid as usize].quote = self.users[uid as usize]
-                    .quote
-                    .checked_sub(amount)
-                    .ok_or(EmberErr::NotEnoughFunds)?
-            }
-            Side::Ask => {
-                if token == 1 {
-                    self.users[uid as usize].base_1 = self.users[uid as usize]
-                        .base_1
-                        .checked_sub(amount)
-                        .ok_or(EmberErr::NotEnoughFunds)?
-                } else if token == 2 {
-                    self.users[uid as usize].base_2 = self.users[uid as usize]
-                        .base_2
-                        .checked_sub(amount)
-                        .ok_or(EmberErr::NotEnoughFunds)?
-                }
-            }
+        if token == 0 {
+            self.users[uid as usize].quote = self.users[uid as usize]
+                .quote
+                .checked_sub(amount)
+                .ok_or(EmberErr::NotEnoughFunds)?
+        }
+        if token == 1 {
+            self.users[uid as usize].base_1 = self.users[uid as usize]
+                .base_1
+                .checked_sub(amount)
+                .ok_or(EmberErr::NotEnoughFunds)?
+        } else if token == 2 {
+            self.users[uid as usize].base_2 = self.users[uid as usize]
+                .base_2
+                .checked_sub(amount)
+                .ok_or(EmberErr::NotEnoughFunds)?
+        }
+
+        Ok(())
+    }
+
+    pub fn credit_account(&mut self, uid: u64, amount: u64, token: u8) -> Result<()> {
+        if token == 0 {
+            self.users[uid as usize].quote = self.users[uid as usize]
+                .quote
+                .checked_add(amount)
+                .ok_or(EmberErr::NotEnoughFunds)?
+        } else if token == 1 {
+            self.users[uid as usize].base_1 += amount
+        } else if token == 2 {
+            self.users[uid as usize].base_2 += amount
         }
 
         Ok(())

@@ -18,4 +18,6 @@ pub enum EmberErr {
     NotEnoughFunds,
     #[msg("Orderbook doesn't match with the market")]
     InvalidMarket,
+    #[msg("The order specified belongs to a different user")]
+    UnauthorizedOrderCancellation,
 }

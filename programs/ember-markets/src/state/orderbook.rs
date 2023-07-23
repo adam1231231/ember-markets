@@ -22,7 +22,7 @@ pub struct OrderBook {
 #[zero_copy]
 pub struct Order {
     pub price: u64,
-    pub amount: u64,
+    pub size: u64,
     pub uid: u64,
     pub prev: u64,
     pub next: u64,
@@ -32,7 +32,7 @@ impl Default for Order {
     fn default() -> Self {
         Self {
             price: 0,
-            amount: 0,
+            size: 0,
             uid: 0,
             prev: 0,
             next: 0,
@@ -41,10 +41,10 @@ impl Default for Order {
 }
 
 impl OrderBook {
-    pub fn insert_order(&mut self, amount: u64, price: u64, uid: u64) -> Result<()> {
+    pub fn insert_order(&mut self, size: u64, price: u64, uid: u64) -> Result<()> {
         let mut order = Order::default();
         order.uid = uid;
-        order.amount = amount;
+        order.size = size;
         order.price = price;
 
         let mut prev_index: Option<u64> = Some(0);
@@ -105,7 +105,7 @@ impl OrderBook {
         self.orders[i as usize] = order;
     }
 
-    fn remove_order(&mut self, i: u64) {
+    pub fn remove_order(&mut self, i: u64) {
         let order: Order = self.orders[i as usize].clone();
         if order.prev == 0 {
             self.best_order_idx = order.next;
@@ -128,12 +128,12 @@ impl OrderBook {
         let mut i = self.best_order_idx;
         while filled_amount < amount && i != 0 {
             let order = self.orders.get_mut(i as usize).unwrap();
-            let amount_to_fill = std::cmp::min(order.amount, amount - filled_amount);
-            order.amount -= amount_to_fill;
+            let amount_to_fill = std::cmp::min(order.size, amount - filled_amount);
+            order.size -= amount_to_fill;
             total_cost += amount_to_fill * order.price;
             filled_amount += amount_to_fill;
             i = order.next;
-            if order.amount == 0 {
+            if order.size == 0 {
                 self.remove_order(i);
             }
         }
