@@ -13,7 +13,7 @@ pub fn place_limit_order(
     side: Side,
     price: u64,
     size: u64,
-    expire_in : u64,
+    expire_in: u64,
 ) -> Result<()> {
     let orderbook = &mut ctx.accounts.orderbook.load_mut()?;
     // check other side for better price:
@@ -38,7 +38,7 @@ pub fn place_limit_order(
     // with price, each 1 is worth is 0.01 cents (100 usdc lots), and the base token got 0 decimals so not divisible
     let total_cost = match side {
         Side::Bid => {
-            orderbook.bids.insert_order(size, price, uid,expire_in)?;
+            orderbook.bids.insert_order(size, price, uid, expire_in)?;
             price * size
         }
         Side::Ask => {
@@ -120,6 +120,7 @@ pub fn place_market_order(ctx: Context<PlaceMarketOrder>, side: Side, amount: u6
                 let order = orders_side.orders.get_mut(i as usize).unwrap();
                 if order.expire_at != 0 && order.expire_at < Clock::get()?.unix_timestamp as u64 {
                     // would check if the order is expired, if yes, remove it
+                    balances.credit_account(order.uid, order.size * order.price, 0)?;
                     orders_side.remove_order(i);
                     i = order.next;
                     continue;
@@ -145,6 +146,11 @@ pub fn place_market_order(ctx: Context<PlaceMarketOrder>, side: Side, amount: u6
                 let amount_to_fill = std::cmp::min(order.size, amount - filled_amount);
                 if order.expire_at != 0 && order.expire_at < Clock::get()?.unix_timestamp as u64 {
                     // would check if the order is expired, if yes, remove it
+                    if base_mint == ctx.accounts.market.outcome_1_key {
+                        balances.credit_account(order.uid, order.size, 1)?;
+                    } else if base_mint == ctx.accounts.market.outcome_2_key {
+                        balances.credit_account(order.uid, order.size, 2)?;
+                    }
                     orders_side.remove_order(i);
                     i = order.next;
                     continue;
