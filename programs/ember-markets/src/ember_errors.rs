@@ -11,5 +11,5 @@ pub enum EmberErr {
     #[msg("The signer is not an admin ")]
     InvalidAdmin,
     #[msg("Question should be 200 letters or less")]
-    QuestionTooLong
+    QuestionTooLong,
 }

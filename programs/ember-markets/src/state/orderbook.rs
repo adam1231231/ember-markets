@@ -1,9 +1,8 @@
 use anchor_lang::prelude::*;
 
-use crate::ember_errors::EmberErr;
 use crate::consts::ORDER_BOOK_SIZE;
-use crate::state::side::{StoredSide, Sides};
-
+use crate::ember_errors::EmberErr;
+use crate::state::side::{Sides, StoredSide};
 
 #[account(zero_copy)]
 pub struct OrderBookState {
@@ -11,7 +10,6 @@ pub struct OrderBookState {
     pub sell_side: OrderBook,
     pub market_key: Pubkey,
 }
-
 
 #[zero_copy]
 pub struct OrderBook {
@@ -49,7 +47,6 @@ impl OrderBook {
         order.amount = amount;
         order.price = price;
 
-
         let mut prev_index: Option<u64> = Some(0);
         for i in 0..self.orders.len() {
             if self.is_price_better(price, self.orders[i].price) {
@@ -74,7 +71,6 @@ impl OrderBook {
         self.place_order(order, order_idx);
         Ok(())
     }
-
 
     fn is_price_better(&self, lhs: u64, rhs: u64) -> bool {
         match self.side.into() {
@@ -110,7 +106,7 @@ impl OrderBook {
     }
 
     fn remove_order(&mut self, i: u64) {
-        let order : Order = self.orders[i as usize].clone();
+        let order: Order = self.orders[i as usize].clone();
         if order.prev == 0 {
             self.best_order_idx = order.next;
         } else {
@@ -140,7 +136,7 @@ impl OrderBook {
             if order.amount == 0 {
                 self.remove_order(i);
             }
-        };
+        }
         total_cost
     }
 }

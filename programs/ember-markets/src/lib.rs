@@ -2,11 +2,10 @@ use anchor_lang::prelude::*;
 
 use crate::instructions::*;
 
-mod instructions;
-mod ember_errors;
-mod state;
 mod consts;
-
+mod ember_errors;
+mod instructions;
+mod state;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -14,7 +13,12 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod ember_markets {
     use super::*;
 
-    pub fn initialize_market(ctx: Context<InitializeMarket>, question: String, duration: u64, rewards_multiplier: u64) -> Result<()> {
+    pub fn initialize_market(
+        ctx: Context<InitializeMarket>,
+        question: String,
+        duration: u64,
+        rewards_multiplier: u64,
+    ) -> Result<()> {
         instructions::initialize_market(ctx, question, duration, rewards_multiplier)
     }
 

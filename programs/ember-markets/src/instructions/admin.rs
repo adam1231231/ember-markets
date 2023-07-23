@@ -5,14 +5,16 @@ use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::{ADMIN_WALLETS, BINARY_OUTCOME_TOKEN_PROGRAM_ID, MARKET_AUTH_SEED};
 use crate::ember_errors::EmberErr;
-use crate::state::BOT::Condition;
 use crate::state::orderbook::OrderBookState;
 use crate::state::state::{Auth, Market, UsersBalances};
+use crate::state::BOT::Condition;
 
-pub fn initialize_market(ctx: Context<InitializeMarket>,
-                         question: String,
-                         duration: u64,
-                         rewards_multiplier: u64) -> Result<()> {
+pub fn initialize_market(
+    ctx: Context<InitializeMarket>,
+    question: String,
+    duration: u64,
+    rewards_multiplier: u64,
+) -> Result<()> {
     confirm_admin(&ctx.accounts.signer)?;
 
     // initially going to be 8 hours, will remove this constraint later
@@ -31,14 +33,16 @@ pub fn initialize_market(ctx: Context<InitializeMarket>,
     }
 
     {
-        ctx.accounts.orderbook_state.load_init()?;
+        ctx.accounts.orderbook_state_1.load_init()?;
+        ctx.accounts.orderbook_state_2.load_init()?;
         ctx.accounts.balances.load_init()?;
     }
 
     ctx.accounts.market.question = question.into_bytes();
     ctx.accounts.market.end_time = Clock::get()?.epoch + duration;
     ctx.accounts.market.creator = *ctx.accounts.signer.key;
-    ctx.accounts.market.orderbook_state = ctx.accounts.orderbook_state.key();
+    ctx.accounts.market.orderbook_state_1 = ctx.accounts.orderbook_state_1.key();
+    ctx.accounts.market.orderbook_state_2 = ctx.accounts.orderbook_state_2.key();
     ctx.accounts.market.rewards_multiplier = rewards_multiplier;
     ctx.accounts.market.balances_address = ctx.accounts.balances.key();
     ctx.accounts.market.resolved = false;
@@ -52,7 +56,6 @@ pub fn initialize_market(ctx: Context<InitializeMarket>,
     Ok(())
 }
 
-
 pub fn confirm_admin(signer_address: &Signer) -> Result<()> {
     let market_admin_addresses: Vec<Pubkey> = ADMIN_WALLETS
         .iter()
@@ -65,10 +68,8 @@ pub fn confirm_admin(signer_address: &Signer) -> Result<()> {
     Ok(())
 }
 
-
 #[derive(Accounts)]
 pub struct InitializeMarket<'info> {
-
     #[account(mut)]
     pub signer: Signer<'info>,
 
@@ -76,8 +77,9 @@ pub struct InitializeMarket<'info> {
     pub market: Box<Account<'info, Market>>,
 
     #[account(mut)]
-    pub orderbook_state: AccountLoader<'info, OrderBookState>,
-
+    pub orderbook_state_1: AccountLoader<'info, OrderBookState>,
+    #[account(mut)]
+    pub orderbook_state_2: AccountLoader<'info, OrderBookState>,
     #[account(mut)]
     pub balances: AccountLoader<'info, UsersBalances>,
 
@@ -85,15 +87,17 @@ pub struct InitializeMarket<'info> {
     pub condition: Account<'info, Condition>,
 
     #[account(init, seeds = [MARKET_AUTH_SEED, market.key().as_ref()],bump, payer = signer, space = 9)]
-    pub market_auth_pda : Account<'info,Auth>,
+    pub market_auth_pda: Account<'info, Auth>,
 
-    #[account(mut, constraint = base_vault.owner == market_auth_pda.key())]
-    pub base_vault : Account<'info, TokenAccount>,
+    #[account(mut, constraint = base_vault_1.owner == market_auth_pda.key())]
+    pub base_vault_1: Account<'info, TokenAccount>,
+
+    #[account(mut, constraint = base_vault_2.owner == market_auth_pda.key())]
+    pub base_vault_2: Account<'info, TokenAccount>,
 
     #[account(mut, constraint = quote_vault.owner == market_auth_pda.key())]
-    pub quote_vault : Account<'info, TokenAccount>,
+    pub quote_vault: Account<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-
 }

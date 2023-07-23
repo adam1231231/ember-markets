@@ -15,7 +15,6 @@ pub struct Condition {
     pub ended_at_slot: u64,
 }
 
-
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct Outcome {
     pub name: String,
