@@ -7,12 +7,12 @@ mod consts;
 mod ember_errors;
 mod instructions;
 mod state;
+mod utils;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 pub mod ember_markets {
-
     use super::*;
 
     pub fn initialize_market(
@@ -39,5 +39,13 @@ pub mod ember_markets {
         size: u64,
     ) -> Result<()> {
         instructions::place_limit_order(ctx, side, price, size)
+    }
+
+    pub fn cancel_limit_order(
+        ctx: Context<CancelLimitOrder>,
+        side: Side,
+        order_id: u64,
+    ) -> Result<()> {
+        instructions::cancel_limit_order(ctx, side, order_id)
     }
 }
