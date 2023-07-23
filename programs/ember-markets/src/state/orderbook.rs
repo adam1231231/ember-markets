@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::consts::ORDER_BOOK_SIZE;
 use crate::ember_errors::EmberErr;
 use crate::state::side::{Sides, StoredSide};
+use crate::state::state::{UsersBalances};
 
 #[account(zero_copy)]
 pub struct OrderBookState {
@@ -20,24 +21,13 @@ pub struct OrderBook {
 }
 
 #[zero_copy]
+#[derive(Default)]
 pub struct Order {
     pub price: u64,
     pub size: u64,
     pub uid: u64,
     pub prev: u64,
     pub next: u64,
-}
-
-impl Default for Order {
-    fn default() -> Self {
-        Self {
-            price: 0,
-            size: 0,
-            uid: 0,
-            prev: 0,
-            next: 0,
-        }
-    }
 }
 
 impl OrderBook {
@@ -122,7 +112,7 @@ impl OrderBook {
         self.orders[i as usize] = Order::default();
     }
 
-    fn match_orders(&mut self, amount: u64) -> u64 {
+    fn match_orders(&mut self, amount: u64,mut  balances : UsersBalances) -> u64 {
         let mut filled_amount = 0;
         let mut total_cost = 0;
         let mut i = self.best_order_idx;
@@ -132,6 +122,7 @@ impl OrderBook {
             order.size -= amount_to_fill;
             total_cost += amount_to_fill * order.price;
             filled_amount += amount_to_fill;
+            
             i = order.next;
             if order.size == 0 {
                 self.remove_order(i);

@@ -92,7 +92,7 @@ pub fn claim_balance(ctx: Context<ClaimBalance>) -> Result<()> {
 }
 
 pub fn deposit_balance(
-    ctx: Context<DespositBalance>,
+    ctx: Context<DepositBalance>,
     quote_amount: u64,
     base_1_amount: u64,
     base_2_amount: u64,
@@ -195,7 +195,7 @@ pub struct ClaimBalance<'info> {
     pub token_program: Program<'info, Token>,
 }
 #[derive(Accounts)]
-pub struct DespositBalance<'info> {
+pub struct DepositBalance<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 

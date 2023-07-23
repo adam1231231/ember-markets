@@ -48,4 +48,13 @@ pub mod ember_markets {
     ) -> Result<()> {
         instructions::cancel_limit_order(ctx, side, order_id)
     }
+
+    pub fn deposit_balance(
+        ctx: Context<DepositBalance>,
+        quote_amount: u64,
+        base_1_amount: u64,
+        base_2_amount: u64,
+    ) -> Result<()> {
+        instructions::deposit_balance(ctx, quote_amount, base_1_amount, base_2_amount)
+    }
 }
