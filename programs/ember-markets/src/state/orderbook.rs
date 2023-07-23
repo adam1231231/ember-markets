@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::consts::ORDER_BOOK_SIZE;
 use crate::ember_errors::EmberErr;
 use crate::state::side::{Sides, StoredSide};
-use crate::state::state::{UsersBalances};
+use crate::state::state::UsersBalances;
 
 #[account(zero_copy)]
 pub struct OrderBookState {
@@ -28,14 +28,16 @@ pub struct Order {
     pub uid: u64,
     pub prev: u64,
     pub next: u64,
+    pub expire_at: u64,
 }
 
 impl OrderBook {
-    pub fn insert_order(&mut self, size: u64, price: u64, uid: u64) -> Result<()> {
+    pub fn insert_order(&mut self, size: u64, price: u64, uid: u64, expire_in: u64) -> Result<()> {
         let mut order = Order::default();
         order.uid = uid;
         order.size = size;
         order.price = price;
+        order.expire_at = expire_in + Clock::get()?.unix_timestamp as u64;
 
         let mut prev_index: Option<u64> = Some(0);
         for i in 0..self.orders.len() {
@@ -110,24 +112,5 @@ impl OrderBook {
             self.orders[order.next as usize].prev = order.prev;
         }
         self.orders[i as usize] = Order::default();
-    }
-
-    fn match_orders(&mut self, amount: u64,mut  balances : UsersBalances) -> u64 {
-        let mut filled_amount = 0;
-        let mut total_cost = 0;
-        let mut i = self.best_order_idx;
-        while filled_amount < amount && i != 0 {
-            let order = self.orders.get_mut(i as usize).unwrap();
-            let amount_to_fill = std::cmp::min(order.size, amount - filled_amount);
-            order.size -= amount_to_fill;
-            total_cost += amount_to_fill * order.price;
-            filled_amount += amount_to_fill;
-            
-            i = order.next;
-            if order.size == 0 {
-                self.remove_order(i);
-            }
-        }
-        total_cost
     }
 }
