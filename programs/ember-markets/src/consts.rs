@@ -1,7 +1,4 @@
-use std::str::FromStr;
-
 use anchor_lang::prelude::Pubkey;
-use anchor_lang::solana_program;
 use anchor_lang::solana_program::pubkey;
 
 pub const ORDER_BOOK_SIZE: usize = 128;

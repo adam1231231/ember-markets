@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::TokenAccount;
 
 use crate::ember_errors::EmberErr;
 use crate::state::orderbook::OrderBookState;

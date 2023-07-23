@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::instructions::*;
+use crate::state::side::Side;
 
 mod consts;
 mod ember_errors;
@@ -11,6 +12,7 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 pub mod ember_markets {
+
     use super::*;
 
     pub fn initialize_market(
@@ -28,5 +30,14 @@ pub mod ember_markets {
 
     pub fn create_market_account(ctx: Context<CreateMarketAccount>) -> Result<()> {
         instructions::create_market_account(ctx)
+    }
+
+    pub fn place_limit_order(
+        ctx: Context<PlaceLimitOrder>,
+        side: Side,
+        price: u64,
+        size: u64,
+    ) -> Result<()> {
+        instructions::place_limit_order(ctx, side, price, size)
     }
 }
