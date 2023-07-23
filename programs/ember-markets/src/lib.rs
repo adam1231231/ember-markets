@@ -1,10 +1,12 @@
+use anchor_lang::prelude::*;
+
+use crate::instructions::*;
+
 mod instructions;
 mod ember_errors;
 mod state;
 mod consts;
 
-
-use anchor_lang::prelude::*;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -12,13 +14,15 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod ember_markets {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-
-        Ok(())
+    pub fn initialize_market(ctx: Context<InitializeMarket>, question: String, duration: u64, rewards_multiplier: u64) -> Result<()> {
+        instructions::initialize_market(ctx, question, duration, rewards_multiplier)
     }
-}
 
-#[derive(Accounts)]
-pub struct Initialize<'info> {
-    signer : Signer<'info>,
+    pub fn create_user_account(ctx: Context<CreateUserAccount>) -> Result<()> {
+        instructions::create_user_account(ctx)
+    }
+
+    pub fn create_market_account(ctx: Context<CreateMarketAccount>) -> Result<()> {
+        instructions::create_market_account(ctx)
+    }
 }

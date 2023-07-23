@@ -14,6 +14,8 @@ pub struct Market {
     pub quote_key : Pubkey,
     pub outcome_1_key : Pubkey,
     pub outcome_2_key : Pubkey,
+    pub base_vault : Pubkey,
+    pub quote_vault : Pubkey,
 }
 
 #[account(zero_copy)]
@@ -44,3 +46,6 @@ pub struct MarketSpecificUser {
     pub volume: u64,
     // add avg buy in, would be nice to calculate user's pnl on without fetching transactions
 }
+
+#[account]
+pub struct Auth {}

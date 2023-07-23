@@ -1,13 +1,13 @@
 use std::str::FromStr;
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
+use anchor_spl::token::{Token, TokenAccount};
 
-use crate::consts::{ADMIN_WALLETS, BINARY_OUTCOME_TOKEN_PROGRAM_ID};
+use crate::consts::{ADMIN_WALLETS, BINARY_OUTCOME_TOKEN_PROGRAM_ID, MARKET_AUTH_SEED};
 use crate::ember_errors::EmberErr;
 use crate::state::BOT::Condition;
 use crate::state::orderbook::OrderBookState;
-use crate::state::state::{Market, UsersBalances};
+use crate::state::state::{Auth, Market, UsersBalances};
 
 pub fn initialize_market(ctx: Context<InitializeMarket>,
                          question: String,
@@ -46,6 +46,8 @@ pub fn initialize_market(ctx: Context<InitializeMarket>,
     ctx.accounts.market.quote_key = ctx.accounts.condition.collateral_token.key();
     ctx.accounts.market.outcome_1_key = ctx.accounts.condition.outcomes[0].token_mint;
     ctx.accounts.market.outcome_2_key = ctx.accounts.condition.outcomes[1].token_mint;
+    ctx.accounts.market.base_vault = ctx.accounts.base_vault.key();
+    ctx.accounts.market.quote_vault = ctx.accounts.quote_vault.key();
 
     Ok(())
 }
@@ -66,16 +68,32 @@ pub fn confirm_admin(signer_address: &Signer) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct InitializeMarket<'info> {
+
     #[account(mut)]
-    signer: Signer<'info>,
+    pub signer: Signer<'info>,
+
     #[account(init, payer = signer, space = std::mem::size_of::< Market > ())]
-    market: Box<Account<'info, Market>>,
+    pub market: Box<Account<'info, Market>>,
+
     #[account(mut)]
-    orderbook_state: AccountLoader<'info, OrderBookState>,
+    pub orderbook_state: AccountLoader<'info, OrderBookState>,
+
     #[account(mut)]
-    balances: AccountLoader<'info, UsersBalances>,
+    pub balances: AccountLoader<'info, UsersBalances>,
+
     #[account(owner = BINARY_OUTCOME_TOKEN_PROGRAM_ID)]
-    condition: Account<'info, Condition>,
-    system_program: Program<'info, System>,
+    pub condition: Account<'info, Condition>,
+
+    #[account(init, seeds = [MARKET_AUTH_SEED, market.key().as_ref()],bump, payer = signer, space = 9)]
+    pub market_auth_pda : Account<'info,Auth>,
+
+    #[account(mut, constraint = base_vault.owner == market_auth_pda.key())]
+    pub base_vault : Account<'info, TokenAccount>,
+
+    #[account(mut, constraint = quote_vault.owner == market_auth_pda.key())]
+    pub quote_vault : Account<'info, TokenAccount>,
+
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
 
 }
