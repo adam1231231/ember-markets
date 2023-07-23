@@ -221,6 +221,29 @@ pub fn place_market_order(ctx: Context<PlaceMarketOrder>, side: Side, amount: u6
     Ok(())
 }
 
+pub fn clear_expired_orders(ctx : Context<ClearExpiredOrders>) -> Result<()> {
+    // this instruction is a convenient ix to loop over the orderbook and remove expired orders.
+    // it will work in a crank style, but won't be necessary since expired orders won't be executing anyway
+    let orderbook = &mut ctx.accounts.orderbook.load_mut()?;
+    let balances = &mut ctx.accounts.balances.load_mut()?;
+    for order in orderbook.bids.orders.iter_mut() {
+        if order.expire_at != 0 && order.expire_at < Clock::get()?.unix_timestamp as u64 {
+            balances.credit_account(order.uid, order.size * order.price, 0)?;
+            orderbook.asks.remove_order(order.uid);
+        }
+    }
+
+    for order in orderbook.asks.orders.iter_mut() {
+        if order.expire_at != 0 && order.expire_at < Clock::get()?.unix_timestamp as u64 {
+            balances.credit_account(order.uid, order.size, 0)?;
+            orderbook.bids.remove_order(order.uid);
+        }
+    }
+
+
+    Ok(())
+}
+
 #[derive(Accounts)]
 pub struct CancelLimitOrder<'info> {
     #[account(mut)]
@@ -272,4 +295,14 @@ pub struct PlaceMarketOrder<'info> {
     pub quote_vault: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
+}
+
+
+#[derive(Accounts)]
+pub struct ClearExpiredOrders<'info> {
+    pub market: Account<'info, Market>,
+    #[account(mut, constraint = orderbook.key() == market.orderbook_state_1 || orderbook.key() == market.orderbook_state_2)]
+    pub orderbook: AccountLoader<'info, OrderBookState>,
+    #[account(mut, constraint = balances.key() == market.balances)]
+    pub balances: AccountLoader<'info, UsersBalances>,
 }
