@@ -34,7 +34,6 @@ pub fn create_market_account(ctx: Context<CreateMarketAccount>) -> Result<()> {
 }
 
 pub fn claim_balance(ctx: Context<ClaimBalance>) -> Result<()> {
-    // TODO: sort out having 2 different markets, 1 market for each outcome so 2 base and 1 quote account
     let balances = &mut ctx.accounts.balances.load_mut()?;
     let user_balance = &mut balances.users[ctx.accounts.user_market_pda.uid as usize];
     let base_balance_1 = user_balance.base_1;
@@ -201,22 +200,22 @@ pub struct DepositBalance<'info> {
 
     pub market: Box<Account<'info, Market>>,
     #[account(mut, seeds = [signer.key().as_ref(), market.key().as_ref()], bump)]
-    pub user_market_pda: Account<'info, MarketSpecificUser>,
+    pub user_market_pda: Box<Account<'info, MarketSpecificUser>>,
     #[account(mut, constraint = balances.key() == market.balances)]
     pub balances: AccountLoader<'info, UsersBalances>,
 
     #[account(mut, constraint = base_vault_1.key() == market.base_vault_1)]
-    pub base_vault_1: Account<'info, TokenAccount>,
+    pub base_vault_1: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = base_vault_2.key() == market.base_vault_1)]
-    pub base_vault_2: Account<'info, TokenAccount>,
+    pub base_vault_2: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = quote_vault.key() == market.quote_vault)]
-    pub quote_vault: Account<'info, TokenAccount>,
+    pub quote_vault: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = market.quote_key == quote_account.mint.key())]
     pub quote_account: Account<'info, TokenAccount>,
     #[account(mut, constraint = market.outcome_1_key == quote_account.mint.key())]
-    pub base_account_1: Account<'info, TokenAccount>,
+    pub base_account_1: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = market.outcome_2_key == quote_account.mint.key())]
-    pub base_account_2: Account<'info, TokenAccount>,
+    pub base_account_2: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
 }

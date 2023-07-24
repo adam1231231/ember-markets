@@ -285,9 +285,9 @@ pub struct PlaceLimitOrder<'info> {
 pub struct PlaceMarketOrder<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    pub market: Account<'info, Market>,
+    pub market: Box<Account<'info, Market>>,
     #[account(mut, seeds = [signer.key().as_ref(), USER_ACCOUNT_PDA_SEED], bump)]
-    pub user_account: Account<'info, User>,
+    pub user_account: Box<Account<'info, User>>,
     #[account(mut, constraint = orderbook.key() == market.orderbook_state_1 || orderbook.key() == market.orderbook_state_2)]
     pub orderbook: AccountLoader<'info, OrderBookState>,
     #[account(mut, constraint = balances.key() == market.balances)]

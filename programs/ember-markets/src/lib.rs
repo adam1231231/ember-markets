@@ -58,6 +58,10 @@ pub mod ember_markets {
         instructions::place_market_order(ctx, side, amount)
     }
 
+    pub fn claim_balance(ctx: Context<ClaimBalance>) -> Result<()> {
+        instructions::claim_balance(ctx)
+    }
+
     pub fn deposit_balance(
         ctx: Context<DepositBalance>,
         quote_amount: u64,
