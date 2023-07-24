@@ -121,8 +121,8 @@ pub fn place_market_order(ctx: Context<PlaceMarketOrder>, side: Side, amount: u6
                 if order.expire_at != 0 && order.expire_at < Clock::get()?.unix_timestamp as u64 {
                     // would check if the order is expired, if yes, remove it
                     balances.credit_account(order.uid, order.size * order.price, 0)?;
-                    orders_side.remove_order(i);
                     i = order.next;
+                    orders_side.remove_order(i);
                     continue;
                 }
                 let amount_to_fill = std::cmp::min(order.size, amount - filled_amount);
@@ -151,8 +151,8 @@ pub fn place_market_order(ctx: Context<PlaceMarketOrder>, side: Side, amount: u6
                     } else if base_mint == ctx.accounts.market.outcome_2_key {
                         balances.credit_account(order.uid, order.size, 2)?;
                     }
-                    orders_side.remove_order(i);
                     i = order.next;
+                    orders_side.remove_order(i);
                     continue;
                 }
                 order.size -= amount_to_fill;
@@ -221,25 +221,32 @@ pub fn place_market_order(ctx: Context<PlaceMarketOrder>, side: Side, amount: u6
     Ok(())
 }
 
-pub fn clear_expired_orders(ctx : Context<ClearExpiredOrders>) -> Result<()> {
+pub fn clear_expired_orders(ctx: Context<ClearExpiredOrders>) -> Result<()> {
     // this instruction is a convenient ix to loop over the orderbook and remove expired orders.
     // it will work in a crank style, but won't be necessary since expired orders won't be executing anyway
     let orderbook = &mut ctx.accounts.orderbook.load_mut()?;
     let balances = &mut ctx.accounts.balances.load_mut()?;
-    for order in orderbook.bids.orders.iter_mut() {
+    let mut orders_to_remove = Vec::new();
+    for order in orderbook.bids.orders.iter() {
         if order.expire_at != 0 && order.expire_at < Clock::get()?.unix_timestamp as u64 {
             balances.credit_account(order.uid, order.size * order.price, 0)?;
-            orderbook.asks.remove_order(order.uid);
+            orders_to_remove.push(order.uid);
         }
     }
+    for order in orders_to_remove {
+        orderbook.bids.remove_order(order);
+    }
 
+    let mut orders_to_remove = Vec::new();
     for order in orderbook.asks.orders.iter_mut() {
         if order.expire_at != 0 && order.expire_at < Clock::get()?.unix_timestamp as u64 {
             balances.credit_account(order.uid, order.size, 0)?;
-            orderbook.bids.remove_order(order.uid);
+            orders_to_remove.push(order.uid);
         }
     }
-
+    for order in orders_to_remove {
+        orderbook.asks.remove_order(order);
+    }
 
     Ok(())
 }
@@ -296,7 +303,6 @@ pub struct PlaceMarketOrder<'info> {
 
     pub token_program: Program<'info, Token>,
 }
-
 
 #[derive(Accounts)]
 pub struct ClearExpiredOrders<'info> {

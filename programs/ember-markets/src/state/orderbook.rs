@@ -3,7 +3,6 @@ use anchor_lang::prelude::*;
 use crate::consts::ORDER_BOOK_SIZE;
 use crate::ember_errors::EmberErr;
 use crate::state::side::{Sides, StoredSide};
-use crate::state::state::UsersBalances;
 
 #[account(zero_copy)]
 pub struct OrderBookState {

@@ -1,9 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::TokenAccount;
 
 use crate::consts::USERS_BALANCES;
 use crate::ember_errors::EmberErr;
-use crate::state::side::Side;
 
 #[account]
 pub struct Market {
@@ -41,6 +39,8 @@ impl Market {
         }
     }
 }
+
+
 
 #[account(zero_copy)]
 pub struct UsersBalances {

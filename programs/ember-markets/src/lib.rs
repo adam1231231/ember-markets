@@ -37,8 +37,9 @@ pub mod ember_markets {
         side: Side,
         price: u64,
         size: u64,
+        expire_in: u64,
     ) -> Result<()> {
-        instructions::place_limit_order(ctx, side, price, size)
+        instructions::place_limit_order(ctx, side, price, size, expire_in)
     }
 
     pub fn cancel_limit_order(
@@ -49,6 +50,14 @@ pub mod ember_markets {
         instructions::cancel_limit_order(ctx, side, order_id)
     }
 
+    pub fn place_market_order(
+        ctx: Context<PlaceMarketOrder>,
+        side: Side,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::place_market_order(ctx, side, amount)
+    }
+
     pub fn deposit_balance(
         ctx: Context<DepositBalance>,
         quote_amount: u64,
@@ -56,5 +65,9 @@ pub mod ember_markets {
         base_2_amount: u64,
     ) -> Result<()> {
         instructions::deposit_balance(ctx, quote_amount, base_1_amount, base_2_amount)
+    }
+
+    pub fn clear_expired_orders(ctx: Context<ClearExpiredOrders>) -> Result<()> {
+        instructions::clear_expired_orders(ctx)
     }
 }
