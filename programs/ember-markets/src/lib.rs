@@ -9,7 +9,7 @@ mod instructions;
 mod state;
 mod utils;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("9ERQkbvkLhxTUfw4vpRpcAtxvsUorn7HEXrGSxY5F6Zy");
 
 #[program]
 pub mod ember_markets {

@@ -1,0 +1,25 @@
+[package]
+name = "binary-outcome-tokens"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "binary_outcome_tokens"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.28.0"
+anchor-spl = {version = "0.28.0",features = ["metadata"]}
+solana-program = "=1.14.18"
+toml_edit = "=0.19.0"
+toml_datetime ="=0.6.0"
+bytemuck= "1.13.1"
+mpl-token-metadata = { version = "1.8.1", features = ["no-entrypoint"] }

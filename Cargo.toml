@@ -1,6 +1,7 @@
 [workspace]
 members = [
-    "programs/*"
+    "programs/binary-outcome-tokens",
+    "programs/ember-markets",
 ]
 
 [profile.release]

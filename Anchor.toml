@@ -1,8 +1,12 @@
 [features]
 seeds = false
 skip-lint = false
+
+
 [programs.localnet]
-ember_markets = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+ember_markets = "9ERQkbvkLhxTUfw4vpRpcAtxvsUorn7HEXrGSxY5F6Zy"
+binary_outcome_tokens= "5c5A6f6HQNhgaSmwuKCkCcgEJWk9UoskR9S2Fp5ig6v1"
+#binay_outcome_token = ""
 
 [registry]
 url = "https://api.apr.dev"
