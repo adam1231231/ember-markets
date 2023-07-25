@@ -3,12 +3,10 @@ import { Program } from "@coral-xyz/anchor";
 import { EmberMarkets } from "../target/types/ember_markets";
 import { BinaryOutcomeTokens } from "../target/types/binary_outcome_tokens";
 import { TOKEN_PROGRAM_ID, createAccount, createMint, mintTo } from "@solana/spl-token";
-import { BN } from "bn.js";
-import { AddressLookupTableProgram, Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 
 
 
-
+const USER_ACCOUNT_PDA_SEED = Buffer.from("user_account_pda_seed");
 const CONDITION_AUTH_PDA_SEED = Buffer.from("condition_auth_pda_seed");
 const MARKET_AUTH_SEED = Buffer.from("market_auth_seed");
 
@@ -24,10 +22,13 @@ let yesTokenAta: anchor.web3.PublicKey;
 let noTokenAta: anchor.web3.PublicKey;
 let collateralTokenAta: anchor.web3.PublicKey;
 let payer = new anchor.web3.Keypair();
+let market: anchor.web3.PublicKey;
 
 const OPTS: anchor.web3.ConfirmOptions = {
   skipPreflight: true,
 };
+
+
 
 
 describe("binary-outcome-tokens", () => {
@@ -107,26 +108,26 @@ describe("binary-outcome-tokens", () => {
       100_000_000
     );
 
-        const tx = await BOTProgram.methods.initializeCondition("test",
-            "a random token description",
-            "yes",
-            "no",
-            new anchor.BN(100)).accounts({
-            signer: BOTProgram.provider.publicKey,
-            condition,
-            conditionAuthPda,
-            ticketTokenMint,
-            outcomeToken1: yesToken,
-            outcomeToken2: noToken,
-            collateralToken,
-            collateralVault,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-            systemProgram: anchor.web3.SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-        })
-            .signers([conditionKeypair, vaultKeypair])
-            .
-            rpc(OPTS);
+    const tx = await BOTProgram.methods.initializeCondition("test",
+      "a random token description",
+      "yes",
+      "no",
+      new anchor.BN(100)).accounts({
+        signer: BOTProgram.provider.publicKey,
+        condition,
+        conditionAuthPda,
+        ticketTokenMint,
+        outcomeToken1: yesToken,
+        outcomeToken2: noToken,
+        collateralToken,
+        collateralVault,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([conditionKeypair, vaultKeypair])
+      .
+      rpc(OPTS);
 
   });
 
@@ -183,8 +184,8 @@ describe("binary-outcome-tokens", () => {
   });
 
   it("Initialize Market", async () => {
-    let market = new anchor.web3.Keypair();
-
+    let market_ = new anchor.web3.Keypair();
+    market = market_.publicKey;
     let orderbook_1 = new anchor.web3.Keypair();
     const orderbook1Ix = await EmberProgram.account.orderBookState.createInstruction(orderbook_1)
     let orderbook_2 = new anchor.web3.Keypair();
@@ -192,7 +193,7 @@ describe("binary-outcome-tokens", () => {
     let balances = new anchor.web3.Keypair();
     const balancesIx = await EmberProgram.account.usersBalances.createInstruction(balances)
 
-    const [marketAuthPda, _] = anchor.web3.PublicKey.findProgramAddressSync([MARKET_AUTH_SEED, market.publicKey.toBuffer()], EmberProgram.programId);
+    const [marketAuthPda, _] = anchor.web3.PublicKey.findProgramAddressSync([MARKET_AUTH_SEED, market.toBuffer()], EmberProgram.programId);
 
     const baseVault1 = new anchor.web3.Keypair();
     const baseVault2 = new anchor.web3.Keypair();
@@ -200,13 +201,13 @@ describe("binary-outcome-tokens", () => {
 
     await EmberProgram.methods.initializeMarket().accounts({
       signer: EmberProgram.provider.publicKey,
-      market: market.publicKey,
+      market: market,
       orderbookState1: orderbook_1.publicKey,
       orderbookState2: orderbook_2.publicKey,
       balances: balances.publicKey,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
-    }).signers([orderbook_1, orderbook_2, balances, market])
+    }).signers([orderbook_1, orderbook_2, balances, market_])
       .preInstructions([orderbook1Ix, orderbook2Ix, balancesIx])
       .rpc();
 
@@ -217,7 +218,7 @@ describe("binary-outcome-tokens", () => {
       baseVault1: baseVault1.publicKey,
       baseVault2: baseVault2.publicKey,
       quoteVault: quoteVault.publicKey,
-      market: market.publicKey,
+      market: market,
       signer: EmberProgram.provider.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       condition,
@@ -226,8 +227,22 @@ describe("binary-outcome-tokens", () => {
       systemProgram: anchor.web3.SystemProgram.programId,
     }).signers([baseVault1, baseVault2, quoteVault])
       .rpc(OPTS);
-    console.log(tx);
   });
+
+  let [userAccountPda, _] = anchor.web3.PublicKey.findProgramAddressSync(
+    [EmberProgram.provider.publicKey.toBuffer(), USER_ACCOUNT_PDA_SEED], EmberProgram.programId);
+
+
+  it("user account", async () => {
+    EmberProgram.methods.createUserAccount().accounts({
+      signer: EmberProgram.provider.publicKey,
+      market: market,
+      rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      userAccount: userAccountPda
+    }).rpc(OPTS);
+  });
+
 
   it("Merging tickets", async () => {
 
