@@ -1,13 +1,14 @@
 use anchor_lang::prelude::*;
 use anchor_lang::prelude::Pubkey;
 
+
 #[account]
 pub struct Condition {
-    pub name: String, // condition name
+    pub name: Vec<u8>, // condition name
 
-    pub description: String, // condition description
+    pub description: Vec<u8>, // condition description
 
-    pub outcomes: Vec<Outcome>, // list of outcomes, used to mint tokens and determine winner
+    pub outcomes: [Outcome; 2], // list of outcomes, used to mint tokens and determine winner
 
     pub active: u64, // 1 means active, 0 means inactive and minting should be disabled.
 
@@ -24,9 +25,9 @@ pub struct Condition {
     pub ended_at_slot: u64, // the slot at which the condition ended, this is only informative and not used in any logic
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, Copy)]
 pub struct Outcome {
-    pub name: String, // condition name, used mainly to distinguish between conditions
+    pub name: [u8; 25], // condition name, used mainly to distinguish between conditions
 
     pub token_mint: Pubkey, // base token mint for the condition tickets
 

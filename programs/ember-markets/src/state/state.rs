@@ -38,9 +38,9 @@ impl Market {
             false
         }
     }
+
+    pub const SIZE: usize = 200 + 32 + 8 + 8 + 32 + 32 + 32 + 32 + 1 + 32 + 32 + 32 + 32 + 32 + 32 + 32;
 }
-
-
 
 #[account(zero_copy)]
 pub struct UsersBalances {
@@ -49,12 +49,7 @@ pub struct UsersBalances {
 }
 
 impl UsersBalances {
-    pub fn debt_account(
-        &mut self,
-        uid: u64,
-        amount: u64,
-        token: u8,
-    ) -> Result<()> {
+    pub fn debt_account(&mut self, uid: u64, amount: u64, token: u8) -> Result<()> {
         if token == 0 {
             self.users[uid as usize].quote = self.users[uid as usize]
                 .quote

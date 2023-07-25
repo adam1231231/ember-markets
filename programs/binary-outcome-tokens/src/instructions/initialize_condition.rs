@@ -1,10 +1,24 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use solana_program::pubkey;
 
 use crate::consts::CONDITION_AUTH_PDA_SEED;
 use crate::error_codes::ErrorCodes;
 use crate::state::{AuthAccount, Condition, Outcome};
+
+fn string_to_fixed_array(s: &str) -> [u8; 25] {
+    let mut result = [0u8; 25];
+    let bytes = s.as_bytes();
+
+    // Copy the bytes from the string to the fixed-size array.
+    if bytes.len() <= 25 {
+        result[..bytes.len()].copy_from_slice(bytes);
+    } else {
+        result.copy_from_slice(&bytes[..25]);
+    }
+
+    result
+}
+
 
 pub fn initialize_condition(
     ctx: Context<InitializeCondition>,
@@ -20,18 +34,18 @@ pub fn initialize_condition(
     ctx.accounts.outcome_token_1.token_check(auth_pda)?;
     ctx.accounts.outcome_token_2.token_check(auth_pda)?;
 
-    ctx.accounts.condition.name = name;
-    ctx.accounts.condition.description = description;
+    ctx.accounts.condition.name = name.into_bytes();
+    ctx.accounts.condition.description = description.into_bytes();
     ctx.accounts.condition.active = 1;
     ctx.accounts.condition.ticket_token_mint = ctx.accounts.ticket_token_mint.key();
-    ctx.accounts.condition.outcomes = vec![
+    ctx.accounts.condition.outcomes = [
         Outcome {
-            name: outcome_1_name,
+            name: string_to_fixed_array(&outcome_1_name),
             token_mint: ctx.accounts.outcome_token_1.key().to_owned(),
             winner: 0,
         },
         Outcome {
-            name: outcome_2_name,
+            name: string_to_fixed_array(&outcome_2_name),
             token_mint: ctx.accounts.outcome_token_2.key().to_owned(),
             winner: 0,
         },

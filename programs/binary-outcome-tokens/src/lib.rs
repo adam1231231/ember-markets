@@ -1,11 +1,11 @@
 use anchor_lang::prelude::*;
 
-use instructions::*;
+pub use instructions::*;
 
 mod consts;
 mod error_codes;
 mod instructions;
-mod state;
+pub mod state;
 
 declare_id!("5c5A6f6HQNhgaSmwuKCkCcgEJWk9UoskR9S2Fp5ig6v1");
 
@@ -56,5 +56,3 @@ pub mod binary_outcome_tokens {
     }
 }
 
-#[derive(Accounts)]
-pub struct Initialize {}

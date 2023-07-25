@@ -20,4 +20,8 @@ pub enum EmberErr {
     InvalidMarket,
     #[msg("The order specified belongs to a different user")]
     UnauthorizedOrderCancellation,
+    #[msg("The condition account is owned by the wrong program")]
+    InvalidConditionOwner,
+    #[msg("Provided token doesn't match the corresponding condition token")]
+    InvalidToken
 }

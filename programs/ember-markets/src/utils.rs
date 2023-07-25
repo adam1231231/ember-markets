@@ -36,3 +36,21 @@ seeds :&[&[&[u8]]],
     token::transfer(cpi_ctx, amount)?;
     Ok(())
 }
+
+pub fn init_account<'a>(
+    mint: AccountInfo<'a>,
+    account: AccountInfo<'a>,
+    authority: AccountInfo<'a>,
+    rent: AccountInfo<'a>,
+    token_program_info: AccountInfo<'a>,
+) -> Result<()> {
+    let cpi_accounts = token::InitializeAccount {
+        mint,
+        account,
+        authority,
+        rent,
+    };
+    let cpi_ctx = CpiContext::new(token_program_info, cpi_accounts);
+    token::initialize_account(cpi_ctx)?;
+    Ok(())
+}
